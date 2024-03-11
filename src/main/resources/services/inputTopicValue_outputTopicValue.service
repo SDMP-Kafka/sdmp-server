@@ -1,0 +1,11 @@
+[Unit]
+Description=My Kafka Streams App
+After=network.target
+
+[Service]
+User=kafka
+ExecStart=java -jar ../sdmp-kafka/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar inputTopicValue outputTopicValue STRING keyValue1 value1 RANGE keyValue2 50 80 RANGE keyValue3 100 200
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

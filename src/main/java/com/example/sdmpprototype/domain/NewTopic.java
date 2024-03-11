@@ -4,7 +4,8 @@ import java.util.List;
 
 public record NewTopic(
         String inputTopic,
-        String outputTopic
-
+        String outputTopic,
+        List<Filtering> filtering
 ) {
 }
+

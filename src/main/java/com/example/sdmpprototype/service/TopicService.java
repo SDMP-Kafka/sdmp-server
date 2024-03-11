@@ -1,6 +1,7 @@
 package com.example.sdmpprototype.service;
 
 import com.example.sdmpprototype.domain.ExistTopic;
+import com.example.sdmpprototype.domain.Filtering;
 import com.example.sdmpprototype.domain.NewTopic;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -11,17 +12,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class TopicService {
     public ResponseEntity<String> generateServiceFileByTopic (NewTopic newTopic) throws IOException {
-        String cmd = "java -jar ../sdmp-kafka/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar " +
-                newTopic.inputTopic() + " " + newTopic.outputTopic();
+        Object[] filterArray = flattenJsonValue(newTopic);
+
+
+        String cmd = "java -jar ../sdmp-kafka/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar "
+                + String.join(" ", Arrays.stream(filterArray).map(Object::toString).toArray(String[]::new));
+
         String fileName = newTopic.inputTopic()+"_"+newTopic.outputTopic()+".service";
         String content =
                 "[Unit]\n" +
@@ -30,7 +32,7 @@ public class TopicService {
                         "\n" +
                         "[Service]\n" +
                         "User=kafka\n" +
-                        "ExecStart="+cmd+"\n"+
+                        "ExecStart="+ cmd +"\n"+
                         "SuccessExitStatus=143\n" +
                         "\n" +
                         "[Install]\n" +
@@ -45,7 +47,26 @@ public class TopicService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
         }
     }
-//
+
+    private Object[] flattenJsonValue(NewTopic newTopic){
+        List<Object> values = new ArrayList<>();
+        values.add(newTopic.inputTopic());
+        values.add(newTopic.outputTopic());
+        for (Filtering filtering : newTopic.filtering()) {
+            String type = String.valueOf(filtering.type());
+            values.add(filtering.type());
+            values.add(filtering.key());
+            if (Objects.equals(type, "STRING") || Objects.equals(type, "NUMBER")){
+                values.add(filtering.value());
+            }else{
+                values.add(String.valueOf(filtering.rangeStart()));
+                values.add(String.valueOf(filtering.rangeEnd()));
+            }
+        }
+        return values.toArray();
+    }
+
+
     public ResponseEntity<List<ExistTopic>> getAllTopics() {
         String bootstrapServers = "localhost:9092";
         Properties properties = new Properties();
