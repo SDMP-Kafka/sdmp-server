@@ -45,7 +45,7 @@ public class TopicService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
         }
     }
-
+//
     public ResponseEntity<List<ExistTopic>> getAllTopics() {
         String bootstrapServers = "localhost:9092";
         Properties properties = new Properties();
