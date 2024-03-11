@@ -11,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -41,15 +45,18 @@ public class TopicService {
             writer.write(content);
 
             // Copy the service file to /etc/systemd/system/
-            String sourceFilePath = file.getAbsolutePath();
             String destinationPath = "/etc/systemd/system/" + fileName;
+            Path sourcePath = file.toPath();
+            Path destinationFilePath = Paths.get(destinationPath);
+            Files.copy(sourcePath, destinationFilePath, StandardCopyOption.REPLACE_EXISTING);
 
             ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl",
                     "daemon-reload");
             reloadProcessBuilder.inheritIO().start().waitFor();
-            System.out.println(sourceFilePath);
-            ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp", sourceFilePath, destinationPath);
-            copyProcessBuilder.inheritIO().start().waitFor();
+            // System.out.println(sourceFilePath);
+            // ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp",
+            // sourceFilePath, destinationPath);
+            // copyProcessBuilder.inheritIO().start().waitFor();
 
             // Start the service
             String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() +
