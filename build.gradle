@@ -22,6 +22,17 @@ repositories {
 	mavenCentral()
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.example.sdmpprototype.SdmpPrototypeApplication'
+    }
+   duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
+tasks.withType(AbstractArchiveTask) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.apache.kafka:kafka-streams'
