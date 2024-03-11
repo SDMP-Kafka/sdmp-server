@@ -39,21 +39,35 @@ public class TopicService {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(content);
-            // ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl", "daemon-reload");
-            // reloadProcessBuilder.inheritIO().start().waitFor();
 
-            // // Start the service
-            // String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
-            // ProcessBuilder startProcessBuilder = new ProcessBuilder("sudo", "systemctl", "start", serviceName);
-            // startProcessBuilder.inheritIO().start().waitFor();
+            // Copy the service file to /etc/systemd/system/
+            String sourceFilePath = file.getAbsolutePath();
+            String destinationPath = "/etc/systemd/system/" + fileName;
+            ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp", sourceFilePath, destinationPath);
+            copyProcessBuilder.inheritIO().start().waitFor();
 
-            // // Enable the service to start on system boot
-            // ProcessBuilder enableProcessBuilder = new ProcessBuilder("sudo", "systemctl", "enable", serviceName);
-            // enableProcessBuilder.inheritIO().start().waitFor();
+            ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl",
+                    "daemon-reload");
+            reloadProcessBuilder.inheritIO().start().waitFor();
+
+            // Start the service
+            String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() +
+                    ".service";
+            ProcessBuilder startProcessBuilder = new ProcessBuilder("sudo", "systemctl",
+                    "start", serviceName);
+            startProcessBuilder.inheritIO().start().waitFor();
+
+            // Enable the service to start on system boot
+            ProcessBuilder enableProcessBuilder = new ProcessBuilder("sudo", "systemctl",
+                    "enable", serviceName);
+            enableProcessBuilder.inheritIO().start().waitFor();
             return ResponseEntity.status(HttpStatus.OK).body("Service File has been generated.");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());
-        } 
+        } catch (InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Interrupted while creating service: " + e.getMessage());
+        }
     }
 
     //
