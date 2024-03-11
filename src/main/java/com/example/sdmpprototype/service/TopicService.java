@@ -34,7 +34,7 @@ public class TopicService {
                 "\n" +
                 "[Install]\n" +
                 "WantedBy=multi-user.target\n";
-        File file = new File("home/kafka/generate-service/"
+        File file = new File("/home/kafka/generate-service/"
                 + fileName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
