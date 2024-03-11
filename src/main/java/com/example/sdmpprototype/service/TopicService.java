@@ -52,7 +52,7 @@ public class TopicService {
             // enableProcessBuilder.inheritIO().start().waitFor();
             return ResponseEntity.status(HttpStatus.OK).body("Service File has been generated.");
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());
         } 
     }
 
