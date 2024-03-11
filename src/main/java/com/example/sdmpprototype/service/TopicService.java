@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class TopicService {
     public ResponseEntity<String> generateServiceFileByTopic(NewTopic newTopic) throws IOException {
-        String cmd = "sudo java -jar /home/kafka/kafka-service/sdmp-kstream/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar" +
+        String cmd = "java -jar /home/kafka/kafka-service/sdmp-kstream/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar" +
                 newTopic.inputTopic() + " " + newTopic.outputTopic();
         String fileName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
         String content = "[Unit]\n" +
@@ -34,29 +34,26 @@ public class TopicService {
                 "\n" +
                 "[Install]\n" +
                 "WantedBy=multi-user.target\n";
-        File file = new File("/etc/systemd/system/"
+        File file = new File("home/kafka/generate-service/"
                 + fileName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(content);
-            ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl", "daemon-reload");
-            reloadProcessBuilder.inheritIO().start().waitFor();
+            // ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl", "daemon-reload");
+            // reloadProcessBuilder.inheritIO().start().waitFor();
 
-            // Start the service
-            String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
-            ProcessBuilder startProcessBuilder = new ProcessBuilder("sudo", "systemctl", "start", serviceName);
-            startProcessBuilder.inheritIO().start().waitFor();
+            // // Start the service
+            // String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
+            // ProcessBuilder startProcessBuilder = new ProcessBuilder("sudo", "systemctl", "start", serviceName);
+            // startProcessBuilder.inheritIO().start().waitFor();
 
-            // Enable the service to start on system boot
-            ProcessBuilder enableProcessBuilder = new ProcessBuilder("sudo", "systemctl", "enable", serviceName);
-            enableProcessBuilder.inheritIO().start().waitFor();
+            // // Enable the service to start on system boot
+            // ProcessBuilder enableProcessBuilder = new ProcessBuilder("sudo", "systemctl", "enable", serviceName);
+            // enableProcessBuilder.inheritIO().start().waitFor();
             return ResponseEntity.status(HttpStatus.OK).body("Service File has been generated.");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
-        } catch (InterruptedException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Interrupted while creating service: " + e.getMessage());
-        }
+        } 
     }
 
     //
