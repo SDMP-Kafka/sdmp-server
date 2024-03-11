@@ -43,12 +43,13 @@ public class TopicService {
             // Copy the service file to /etc/systemd/system/
             String sourceFilePath = file.getAbsolutePath();
             String destinationPath = "/etc/systemd/system/" + fileName;
-            ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp", sourceFilePath, destinationPath);
-            copyProcessBuilder.inheritIO().start().waitFor();
 
             ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl",
                     "daemon-reload");
             reloadProcessBuilder.inheritIO().start().waitFor();
+
+            ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp", sourceFilePath, destinationPath);
+            copyProcessBuilder.inheritIO().start().waitFor();
 
             // Start the service
             String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() +
