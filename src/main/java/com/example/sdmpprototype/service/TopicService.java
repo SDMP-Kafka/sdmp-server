@@ -47,7 +47,7 @@ public class TopicService {
             ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl",
                     "daemon-reload");
             reloadProcessBuilder.inheritIO().start().waitFor();
-
+            System.out.println(sourceFilePath);
             ProcessBuilder copyProcessBuilder = new ProcessBuilder("sudo", "cp", sourceFilePath, destinationPath);
             copyProcessBuilder.inheritIO().start().waitFor();
 
