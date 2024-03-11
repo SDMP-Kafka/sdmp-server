@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class TopicService {
     public ResponseEntity<String> generateServiceFileByTopic(NewTopic newTopic) throws IOException {
-        String cmd = "java -jar /home/kafka/kafka-service/sdmp-kstream/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar" +
+        String cmd = "sudo java -jar /home/kafka/kafka-service/sdmp-kstream/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar" +
                 newTopic.inputTopic() + " " + newTopic.outputTopic();
         String fileName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
         String content = "[Unit]\n" +
