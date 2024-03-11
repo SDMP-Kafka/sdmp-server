@@ -19,33 +19,47 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class TopicService {
-    public ResponseEntity<String> generateServiceFileByTopic (NewTopic newTopic) throws IOException {
-        String cmd = "java -jar ../sdmp-kafka/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar " +
+    public ResponseEntity<String> generateServiceFileByTopic(NewTopic newTopic) throws IOException {
+        String cmd = "java -jar /home/kafka/kafka-service/sdmp-kstream/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar" +
                 newTopic.inputTopic() + " " + newTopic.outputTopic();
-        String fileName = newTopic.inputTopic()+"_"+newTopic.outputTopic()+".service";
-        String content =
-                "[Unit]\n" +
-                        "Description=My Kafka Streams App\n" +
-                        "After=network.target\n" +
-                        "\n" +
-                        "[Service]\n" +
-                        "User=kafka\n" +
-                        "ExecStart="+cmd+"\n"+
-                        "SuccessExitStatus=143\n" +
-                        "\n" +
-                        "[Install]\n" +
-                        "WantedBy=multi-user.target\n";
-        File file = new File("../sdmp-prototype/src/main/resources/services/"
-        +fileName);
+        String fileName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
+        String content = "[Unit]\n" +
+                "Description=My Kafka Streams App\n" +
+                "After=network.target\n" +
+                "\n" +
+                "[Service]\n" +
+                "User=kafka\n" +
+                "ExecStart=" + cmd + "\n" +
+                "SuccessExitStatus=143\n" +
+                "\n" +
+                "[Install]\n" +
+                "WantedBy=multi-user.target\n";
+        File file = new File("/etc/systemd/system/"
+                + fileName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(content);
+            ProcessBuilder reloadProcessBuilder = new ProcessBuilder("sudo", "systemctl", "daemon-reload");
+            reloadProcessBuilder.inheritIO().start().waitFor();
+
+            // Start the service
+            String serviceName = newTopic.inputTopic() + "_" + newTopic.outputTopic() + ".service";
+            ProcessBuilder startProcessBuilder = new ProcessBuilder("sudo", "systemctl", "start", serviceName);
+            startProcessBuilder.inheritIO().start().waitFor();
+
+            // Enable the service to start on system boot
+            ProcessBuilder enableProcessBuilder = new ProcessBuilder("sudo", "systemctl", "enable", serviceName);
+            enableProcessBuilder.inheritIO().start().waitFor();
             return ResponseEntity.status(HttpStatus.OK).body("Service File has been generated.");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
+        } catch (InterruptedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Interrupted while creating service: " + e.getMessage());
         }
     }
-//
+
+    //
     public ResponseEntity<List<ExistTopic>> getAllTopics() {
         String bootstrapServers = "localhost:9092";
         Properties properties = new Properties();
