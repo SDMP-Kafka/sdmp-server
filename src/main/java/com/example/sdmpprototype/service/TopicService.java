@@ -3,6 +3,7 @@ package com.example.sdmpprototype.service;
 import com.example.sdmpprototype.domain.ExistTopic;
 import com.example.sdmpprototype.domain.Filtering;
 import com.example.sdmpprototype.domain.NewTopic;
+import com.example.sdmpprototype.dto.ResponseNewTopicDTO;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
@@ -17,38 +18,26 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class TopicService {
-    public ResponseEntity<String> generateServiceFileByTopic (NewTopic newTopic) throws IOException {
+    public ResponseEntity<ResponseNewTopicDTO> generateServiceFileByTopic (NewTopic newTopic) throws IOException {
         Object[] filterArray = flattenJsonValue(newTopic);
 
 
         String cmd = "java -jar ../sdmp-kafka/build/libs/sdmp-kafka-1.0-SNAPSHOT-test.jar "
                 + String.join(" ", Arrays.stream(filterArray).map(Object::toString).toArray(String[]::new));
-
-        String fileName = newTopic.inputTopic()+"_"+newTopic.outputTopic()+".service";
-        String content =
-                "[Unit]\n" +
-                        "Description=My Kafka Streams App\n" +
-                        "After=network.target\n" +
-                        "\n" +
-                        "[Service]\n" +
-                        "User=kafka\n" +
-                        "ExecStart="+ cmd +"\n"+
-                        "SuccessExitStatus=143\n" +
-                        "\n" +
-                        "[Install]\n" +
-                        "WantedBy=multi-user.target\n";
-        File file = new File("../sdmp-prototype/src/main/resources/services/"
-        +fileName);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(content);
-            return ResponseEntity.status(HttpStatus.OK).body("Service File has been generated.");
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        System.out.println(cmd);
+        processBuilder.command("bash","-c",cmd);
+        try {
+            processBuilder.start();
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ResponseNewTopicDTO("Execute Java Successful",newTopic));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid topic name.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseNewTopicDTO("Error Java executing",null));
         }
     }
 
-    private Object[] flattenJsonValue(NewTopic newTopic){
+        private Object[] flattenJsonValue(NewTopic newTopic){
         List<Object> values = new ArrayList<>();
         values.add(newTopic.inputTopic());
         values.add(newTopic.outputTopic());

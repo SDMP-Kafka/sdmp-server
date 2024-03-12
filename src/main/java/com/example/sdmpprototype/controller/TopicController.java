@@ -2,6 +2,7 @@ package com.example.sdmpprototype.controller;
 
 import com.example.sdmpprototype.domain.ExistTopic;
 import com.example.sdmpprototype.domain.NewTopic;
+import com.example.sdmpprototype.dto.ResponseNewTopicDTO;
 import com.example.sdmpprototype.service.TopicService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class TopicController {
     }
 
     @PostMapping("/newtopic")
-    public ResponseEntity<String> generateServiceFileByTopic(@RequestBody NewTopic newTopic) throws IOException {
+    public ResponseEntity<ResponseNewTopicDTO> generateServiceFileByTopic(@RequestBody NewTopic newTopic) throws IOException {
         return this.topicService.generateServiceFileByTopic(newTopic);
     }
 
